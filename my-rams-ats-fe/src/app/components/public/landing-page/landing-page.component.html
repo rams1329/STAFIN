@@ -1,0 +1,288 @@
+<!-- Hero Section -->
+    <section class="bg-gradient-to-br from-primary to-primary/80 text-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div class="text-center">
+          <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-6">
+            Find Your Dream Job
+            <br class="hidden md:block">
+            <span class="text-primary-light">Build Your Future</span>
+          </h1>
+          <p class="text-xl md:text-2xl text-gray-200 mb-8 max-w-3xl mx-auto">
+            Discover amazing career opportunities with top companies. 
+            Start your journey to success with our comprehensive job portal.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a routerLink="/jobs" 
+               class="bg-white text-primary px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all duration-300 transform hover:scale-105">
+              Browse Jobs
+            </a>
+            <a routerLink="/register" 
+               class="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-primary transition-all duration-300">
+              Register Now
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search Section -->
+    <section class="bg-white py-16 -mt-10 relative z-10">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+          <h2 class="text-2xl font-bold text-gray-900 text-center mb-6">
+            Quick Job Search
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Job Title</label>
+              <input type="text" 
+                     placeholder="e.g. Software Engineer"
+                     class="form-input">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+              <select class="form-input">
+                <option value="">All Locations</option>
+                <option *ngFor="let location of locations" [value]="location.id">{{ location.name }}</option>
+              </select>
+            </div>
+            <div class="flex items-end">
+              <a routerLink="/jobs" 
+                 class="btn-primary w-full text-center">
+                Search Jobs
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="bg-gray-50 py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div class="text-center">
+            <div class="text-4xl font-bold text-primary mb-2">{{ stats.totalJobs }}+</div>
+            <div class="text-gray-600">Active Jobs</div>
+          </div>
+          <div class="text-center">
+            <div class="text-4xl font-bold text-primary mb-2">{{ stats.totalCompanies }}+</div>
+            <div class="text-gray-600">Companies</div>
+          </div>
+          <div class="text-center">
+            <div class="text-4xl font-bold text-primary mb-2">{{ stats.totalUsers }}+</div>
+            <div class="text-gray-600">Job Seekers</div>
+          </div>
+          <div class="text-center">
+            <div class="text-4xl font-bold text-primary mb-2">95%</div>
+            <div class="text-gray-600">Success Rate</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured Jobs Section -->
+    <section class="bg-white py-20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            Featured Job Opportunities
+          </h2>
+          <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+            Discover the latest job openings from top companies. 
+            Find the perfect position that matches your skills and career goals.
+          </p>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div *ngFor="let i of [1,2,3,4,5,6]" class="card animate-pulse">
+            <div class="h-4 bg-gray-200 rounded mb-3"></div>
+            <div class="h-6 bg-gray-200 rounded mb-4"></div>
+            <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+            <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+          </div>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="!isLoading && errorMessage" class="text-center py-12">
+          <div class="text-red-600 mb-4">
+            <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p class="text-lg font-medium">Failed to load jobs</p>
+            <p class="text-sm text-gray-500 mt-2">{{ errorMessage }}</p>
+          </div>
+          <button (click)="loadFeaturedJobs()" class="btn-primary">
+            Try Again
+          </button>
+        </div>
+
+        <!-- Featured Jobs Grid -->
+        <div *ngIf="!isLoading && !errorMessage" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+          <div *ngFor="let job of featuredJobs" 
+               class="card hover:shadow-lg transition-all duration-300 cursor-pointer group"
+               [routerLink]="['/jobs', job.id]">
+            <div class="flex justify-between items-start mb-3">
+              <span class="px-3 py-1 bg-primary-light text-primary text-xs font-medium rounded-full">
+                {{ job.jobType.name || 'Full-time' }}
+              </span>
+              <svg class="w-5 h-5 text-gray-400 group-hover:text-primary transition-colors" 
+                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+              </svg>
+            </div>
+            
+            <h3 class="text-lg font-semibold text-gray-900 mb-2 group-hover:text-primary transition-colors">
+              {{ job.jobTitle }}
+            </h3>
+            
+            <p class="text-gray-600 text-sm mb-3 line-clamp-2">
+              {{ job.requirementTitle }}
+            </p>
+            
+            <div class="flex items-center text-sm text-gray-500 mb-2">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+              {{ job.location.name || 'Remote' }}
+            </div>
+
+            <div *ngIf="job.department" class="flex items-center text-sm text-gray-500 mb-2">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+              </svg>
+              {{ job.department.name }}
+            </div>
+            
+            <div *ngIf="job.salaryMin && job.salaryMax" 
+                 class="flex items-center text-sm text-gray-500 mb-3">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+              </svg>
+              <span *ngIf="job.salaryMin && job.salaryMax">
+                &#36;{{ job.salaryMin }}K - &#36;{{ job.salaryMax }}K
+              </span>
+              <span *ngIf="job.salaryMin && !job.salaryMax">
+                From &#36;{{ job.salaryMin }}K
+              </span>
+              <span *ngIf="!job.salaryMin && job.salaryMax">
+                Up to &#36;{{ job.salaryMax }}K
+              </span>
+            </div>
+            
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-gray-400">
+                {{ getTimeAgo(job.createdDate) }}
+              </span>
+              <span class="text-primary font-medium text-sm group-hover:underline">
+                View Details â†’
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="!isLoading && !errorMessage && featuredJobs.length === 0" class="text-center py-12">
+          <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 00-2 2H10a2 2 0 00-2-2V6m8 0H8m8 0v10a2 2 0 01-2 2H10a2 2 0 01-2-2V6"></path>
+          </svg>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">No jobs available</h3>
+          <p class="text-gray-600">Check back soon for new opportunities!</p>
+        </div>
+
+        <!-- View All Jobs Button -->
+        <div *ngIf="featuredJobs.length > 0" class="text-center">
+          <a routerLink="/jobs" 
+             class="btn-primary inline-flex items-center">
+            View All Jobs
+            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="bg-gray-50 py-20">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            Why Choose Our Platform?
+          </h2>
+          <p class="text-lg text-gray-600">
+            We make job searching simple, efficient, and effective
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="text-center">
+            <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">Smart Search</h3>
+            <p class="text-gray-600">
+              Advanced filtering and search capabilities to find exactly what you're looking for
+            </p>
+          </div>
+
+          <div class="text-center">
+            <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">Top Companies</h3>
+            <p class="text-gray-600">
+              Connect with leading companies and startups across various industries
+            </p>
+          </div>
+
+          <div class="text-center">
+            <div class="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">Quick Apply</h3>
+            <p class="text-gray-600">
+              Streamlined application process to get your profile in front of employers fast
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="bg-primary text-white py-20">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl md:text-4xl font-bold mb-4">
+          Ready to Start Your Career Journey?
+        </h2>
+        <p class="text-xl text-gray-200 mb-8">
+          Join thousands of job seekers who have found their dream jobs through our platform
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a routerLink="/register" 
+             class="bg-white text-primary px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transition-all duration-300">
+            Get Started Today
+          </a>
+          <a routerLink="/contact" 
+             class="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-primary transition-all duration-300">
+            Contact Us
+          </a>
+        </div>
+      </div>
+    </section>

@@ -1,0 +1,323 @@
+<div class="p-6 bg-gray-50 min-h-screen">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="text-heading text-gray-900 mb-2">Job Listings</h1>
+        <p class="text-gray-600">Manage all job postings</p>
+      </div>
+
+      <!-- Search and Filters -->
+      <div class="card mb-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Search & Filters</h3>
+        
+        <!-- Global Search -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Global Search</label>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              [(ngModel)]="filters.search"
+              placeholder="Search across all fields..."
+              class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            />
+            <button (click)="applyFilters()" class="btn-primary">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              Search
+            </button>
+            <button (click)="clearFilters()" class="btn-secondary">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- Advanced Filters (Collapsible) -->
+        <div class="border-t pt-4">
+          <button 
+            (click)="showAdvancedFilters = !showAdvancedFilters"
+            class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900"
+          >
+            <svg 
+              class="w-4 h-4 mr-2 transform transition-transform"
+              [class.rotate-180]="showAdvancedFilters"
+              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+            Advanced Filters
+          </button>
+          
+          <div *ngIf="showAdvancedFilters" class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Individual Field Filters -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
+              <input
+                type="text"
+                [(ngModel)]="filters.title"
+                placeholder="Filter by job title..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Requirement Title</label>
+              <input
+                type="text"
+                [(ngModel)]="filters.requirementTitle"
+                placeholder="Filter by requirement title..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Job Designation</label>
+              <input
+                type="text"
+                [(ngModel)]="filters.jobDesignation"
+                placeholder="Filter by designation..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+            
+            <!-- Status Filter -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select
+                [(ngModel)]="filters.isActive"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              >
+                <option [ngValue]="undefined">All Statuses</option>
+                <option [ngValue]="true">Active</option>
+                <option [ngValue]="false">Inactive</option>
+              </select>
+            </div>
+            
+            <!-- Date Range Filters -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Created From</label>
+              <input
+                type="date"
+                [(ngModel)]="filters.createdDateFrom"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Created To</label>
+              <input
+                type="date"
+                [(ngModel)]="filters.createdDateTo"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="loading" class="text-center py-8">
+        <div class="animate-spin inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full"></div>
+        <p class="mt-2 text-gray-500">Loading jobs...</p>
+      </div>
+
+      <!-- Jobs List -->
+      <div *ngIf="!loading" class="card">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="text-subheading text-gray-900">
+              Jobs ({{ pagination.totalElements }})
+            </h3>
+            <p class="text-sm text-gray-500">
+              Page {{ pagination.page + 1 }} of {{ pagination.totalPages }}
+            </p>
+          </div>
+          <div class="flex gap-2">
+            <button routerLink="/admin/jobs/create" class="btn-primary flex items-center gap-2">
+              <svg class="w-5 h-5 button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+              </svg>
+              <span class="button-text">Add New Job</span>
+            </button>
+            <button (click)="loadJobs()" class="btn-secondary flex items-center gap-2">
+              <svg class="w-5 h-5 button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              <span class="button-text">Refresh</span>
+            </button>
+          </div>
+        </div>
+        
+        <div *ngIf="jobs.length === 0" class="text-center py-8">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <p class="mt-2 text-gray-500">No jobs found</p>
+          <p class="text-sm text-gray-400 mt-1">Try adjusting your search criteria</p>
+        </div>
+
+        <div *ngIf="jobs.length > 0" class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="table-header cursor-pointer" (click)="sortBy('jobTitle')">
+                  <div class="flex items-center">
+                    Job Title
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  </div>
+                </th>
+                <th class="table-header cursor-pointer" (click)="sortBy('department.name')">
+                  <div class="flex items-center">
+                    Department
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  </div>
+                </th>
+                <th class="table-header cursor-pointer" (click)="sortBy('location.name')">
+                  <div class="flex items-center">
+                    Location
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  </div>
+                </th>
+                <th class="table-header cursor-pointer" (click)="sortBy('isActive')">
+                  <div class="flex items-center">
+                    Status
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  </div>
+                </th>
+                <th class="table-header cursor-pointer" (click)="sortBy('createdDate')">
+                  <div class="flex items-center">
+                    Created Date
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  </div>
+                </th>
+                <th class="table-header">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr *ngFor="let job of jobs" class="hover:bg-gray-50 transition-colors">
+                <td class="table-cell font-medium">{{ job.jobTitle }}</td>
+                <td class="table-cell">{{ job.department?.name || 'N/A' }}</td>
+                <td class="table-cell">{{ job.location.name || 'N/A' }}</td>
+                <td class="table-cell">
+                  <span class="px-2 py-1 text-xs font-medium rounded-full"
+                        [ngClass]="job.isActive ? 'status-active' : 'status-inactive'">
+                    {{ job.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td class="table-cell">{{ job.createdDate | date:'short' }}</td>
+                <td class="table-cell">
+                  <div class="flex gap-2">
+                    <!-- View Button -->
+                    <button routerLink="/admin/jobs/{{job.id}}" 
+                            class="action-button text-primary hover:text-primary/80 flex items-center gap-1"
+                            title="View Job Details">
+                      <svg class="w-4 h-4 button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                      </svg>
+                      <span class="button-text text-sm">View</span>
+                    </button>
+                    
+                    <!-- Edit Button -->
+                    <button routerLink="/admin/jobs/{{job.id}}/edit" 
+                            class="action-button text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                            title="Edit Job">
+                      <svg class="w-4 h-4 button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                      </svg>
+                      <span class="button-text text-sm">Edit</span>
+                    </button>
+                    
+                    <!-- Toggle Status Button -->
+                    <button (click)="toggleJobStatus(job)" 
+                            class="action-button text-yellow-600 hover:text-yellow-800 flex items-center gap-1"
+                            [title]="job.isActive ? 'Deactivate Job' : 'Activate Job'">
+                      <svg class="w-4 h-4 button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path *ngIf="job.isActive" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        <path *ngIf="!job.isActive" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h6m2 5H7a2 2 0 01-2-2V9a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                      </svg>
+                      <span class="button-text text-sm">{{ job.isActive ? 'Deactivate' : 'Activate' }}</span>
+                    </button>
+                    
+                    <!-- Delete Button -->
+                    <button (click)="deleteJob(job)" 
+                            class="action-button text-red-600 hover:text-red-800 flex items-center gap-1"
+                            title="Delete Job">
+                      <svg class="w-4 h-4 button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                      </svg>
+                      <span class="button-text text-sm">Delete</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div *ngIf="pagination.totalPages > 1" class="mt-6 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <label class="text-sm font-medium text-gray-700">Items per page:</label>
+            <select 
+              [(ngModel)]="pagination.size" 
+              (ngModelChange)="changePageSize($event)"
+              class="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            >
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+            </select>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <button 
+              (click)="goToPage(0)" 
+              [disabled]="pagination.page === 0"
+              class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              First
+            </button>
+            <button 
+              (click)="goToPage(pagination.page - 1)" 
+              [disabled]="pagination.page === 0"
+              class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            
+            <span class="px-3 py-1 text-sm text-gray-700">
+              Page {{ pagination.page + 1 }} of {{ pagination.totalPages }}
+            </span>
+            
+            <button 
+              (click)="goToPage(pagination.page + 1)" 
+              [disabled]="pagination.page >= pagination.totalPages - 1"
+              class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+            <button 
+              (click)="goToPage(pagination.totalPages - 1)" 
+              [disabled]="pagination.page >= pagination.totalPages - 1"
+              class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Last
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>

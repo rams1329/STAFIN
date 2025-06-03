@@ -1,0 +1,127 @@
+// Custom Toast Styling to Match React Toastify Design
+
+.toast-container {
+  .ngx-toastr {
+    position: relative;
+    overflow: hidden;
+    margin: 0 0 10px;
+    padding: 12px 20px 12px 12px;
+    width: 300px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    font-family: "Outfit", serif;
+    
+    /* Background for different toast types (exact from reference) */
+    &.toast-success {
+      background-color: #E8F5E9;
+      border-left: 4px solid #10B981;
+      color: #1B5E20;
+    }
+    
+    &.toast-error {
+      background-color: #FFEBEE;
+      border-left: 4px solid #EF4444;
+      color: #B71C1C;
+    }
+    
+    &.toast-info {
+      background-color: #E1F5FE;
+      border-left: 4px solid #5f6FFF;
+      color: #0D47A1;
+    }
+    
+    &.toast-warning {
+      background-color: #FFF8E1;
+      border-left: 4px solid #F59E0B;
+      color: #E65100;
+    }
+    
+    /* Toast title styling */
+    .toast-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+    
+    /* Toast message styling */
+    .toast-message {
+      font-size: 0.85rem;
+      font-weight: normal;
+    }
+    
+    /* Close button styling */
+    .toast-close-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      color: currentColor;
+      opacity: 0.6;
+      font-size: 0.9rem;
+      
+      &:hover {
+        opacity: 1;
+      }
+    }
+    
+    /* Progress bar styling */
+    .toast-progress {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: 3px;
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+
+/* Toast container positioning classes */
+.toast-top-right {
+  top: 16px;
+  right: 16px;
+}
+
+.toast-top-left {
+  top: 16px;
+  left: 16px;
+}
+
+.toast-bottom-right {
+  bottom: 16px;
+  right: 16px;
+}
+
+.toast-bottom-left {
+  bottom: 16px;
+  left: 16px;
+}
+
+/* Toast animations - similar to React Toastify */
+.toast-shown {
+  animation: toast-in-right 0.3s ease-in-out;
+}
+
+.toast-hidden {
+  animation: toast-out-right 0.3s ease-in-out;
+}
+
+@keyframes toast-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-out-right {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+} 

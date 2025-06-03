@@ -1,0 +1,77 @@
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" (click)="onOverlayClick($event)">
+  <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-gray-200">
+      <div class="flex items-center">
+        <!-- Icon based on type -->
+        <div class="flex-shrink-0 mr-3">
+          <div [ngClass]="{
+            'bg-red-100 text-red-600': data.type === 'danger',
+            'bg-yellow-100 text-yellow-600': data.type === 'warning',
+            'bg-gray-100 text-gray-600': data.type === 'info'
+          }" class="w-10 h-10 rounded-full flex items-center justify-center">
+            <!-- Danger icon -->
+            <svg *ngIf="data.type === 'danger'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 18.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+            <!-- Warning icon -->
+            <svg *ngIf="data.type === 'warning'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <!-- Info icon -->
+            <svg *ngIf="data.type === 'info'" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-lg font-semibold text-gray-900">{{ data.title }}</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="px-6 py-4">
+      <p class="text-gray-700 mb-4">{{ data.message }}</p>
+
+      <!-- Double confirmation input -->
+      <div *ngIf="data.requireDoubleConfirm && data.itemName" class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Type <strong>{{ data.itemName }}</strong> to confirm:
+        </label>
+        <input 
+          type="text" 
+          [(ngModel)]="confirmationText"
+          (input)="onConfirmationTextChange()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+          [placeholder]="'Type &quot;' + data.itemName + '&quot; to confirm'"
+          autocomplete="off">
+        <div *ngIf="confirmationText && !isDoubleConfirmValid" class="text-red-500 text-sm mt-1">
+          Please type "{{ data.itemName }}" exactly as shown above
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="px-6 py-4 bg-gray-50 rounded-b-lg flex justify-end space-x-3">
+      <button 
+        type="button"
+        (click)="onCancel()"
+        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+        {{ data.cancelText || 'Cancel' }}
+      </button>
+      <button 
+        type="button"
+        (click)="onConfirm()"
+        [disabled]="data.requireDoubleConfirm && !isDoubleConfirmValid"
+        [ngClass]="{
+          'bg-red-600 hover:bg-red-700 focus:ring-red-500': data.type === 'danger',
+          'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500': data.type === 'warning',
+          'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500': data.type === 'info'
+        }"
+        class="px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        {{ data.confirmText || 'Confirm' }}
+      </button>
+    </div>
+  </div>
+</div> 

@@ -1,0 +1,601 @@
+<div class="container mx-auto px-4 py-8">
+      <!-- Header -->
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Menu Management</h1>
+          <p class="text-gray-600 mt-2">Manage system menus and role-based access control</p>
+        </div>
+        <div class="flex gap-4">
+          <button (click)="showAnalysis = !showAnalysis" 
+                  class="btn-secondary">
+            <i class="fas fa-chart-bar mr-2"></i>
+            {{ showAnalysis ? 'Hide Analysis' : 'Show Analysis' }}
+          </button>
+          <button (click)="fixAdminAssignments()" 
+                  class="btn-warning">
+            <i class="fas fa-tools mr-2"></i>
+            Fix Admin Access
+          </button>
+          <button (click)="openCreateModal()" 
+                  class="btn-primary">
+            <i class="fas fa-plus mr-2"></i>
+            Create Menu
+          </button>
+        </div>
+      </div>
+
+      <!-- Analysis Panel -->
+      <div *ngIf="showAnalysis && analysis" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">Menu Analysis Dashboard</h2>
+        
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+            <div class="text-blue-600 text-sm font-medium">Total Menus</div>
+            <div class="text-2xl font-bold text-blue-900">{{ analysis.totalMenuCount }}</div>
+          </div>
+          <div class="bg-green-50 rounded-lg p-4 border border-green-200">
+            <div class="text-green-600 text-sm font-medium">Visible to You</div>
+            <div class="text-2xl font-bold text-green-900">{{ analysis.visibleMenuCount }}</div>
+          </div>
+          <div class="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+            <div class="text-yellow-600 text-sm font-medium">Orphaned Menus</div>
+            <div class="text-2xl font-bold text-yellow-900">{{ analysis.orphanedMenus.length }}</div>
+          </div>
+          <div class="bg-purple-50 rounded-lg p-4 border border-purple-200">
+            <div class="text-purple-600 text-sm font-medium">Admin Only</div>
+            <div class="text-2xl font-bold text-purple-900">{{ analysis.adminOnlyMenus.length }}</div>
+          </div>
+        </div>
+
+        <!-- Coverage Progress -->
+        <div class="mb-6">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-sm font-medium text-gray-700">Menu Coverage</span>
+            <span class="text-sm text-gray-500">{{ getCoveragePercentage() }}%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="bg-blue-600 h-2 rounded-full" [style.width.%]="getCoveragePercentage()"></div>
+          </div>
+        </div>
+
+        <!-- Roles and Menu Distribution -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <h3 class="text-lg font-medium mb-3">Menus by Role</h3>
+            <div class="space-y-2 max-h-64 overflow-y-auto">
+              <div *ngFor="let roleMenu of getRoleMenuEntries()" 
+                   class="flex justify-between items-center p-3 bg-gray-50 rounded border">
+                <span class="font-medium">{{ roleMenu.key }}</span>
+                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+                  {{ roleMenu.value.length }} menus
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h3 class="text-lg font-medium mb-3">Your Roles & Access</h3>
+            <div class="space-y-2">
+              <div *ngFor="let role of analysis.userRoles" 
+                   class="p-3 bg-green-50 rounded border border-green-200">
+                <span class="text-green-800 font-medium">{{ role }}</span>
+              </div>
+            </div>
+            
+            <!-- Orphaned Menus Warning -->
+            <div *ngIf="analysis.orphanedMenus.length > 0" class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+              <h4 class="font-medium text-yellow-800">âš ï¸ Orphaned Menus</h4>
+              <p class="text-sm text-yellow-700 mt-1">{{ analysis.orphanedMenus.length }} menus are not assigned to any role</p>
+              <button (click)="activeTab = 'orphaned'" class="text-yellow-600 hover:text-yellow-800 text-sm underline mt-2">
+                View Details
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="border-b border-gray-200">
+          <nav class="flex space-x-8 px-6" aria-label="Tabs">
+            <button *ngFor="let tab of tabs" 
+                    (click)="activeTab = tab.id"
+                    [class]="activeTab === tab.id 
+                      ? 'border-primary text-primary py-4 px-1 border-b-2 font-medium text-sm' 
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 border-b-2 font-medium text-sm'">
+              <i [class]="tab.icon + ' mr-2'"></i>
+              {{ tab.label }}
+            </button>
+          </nav>
+        </div>
+
+        <div class="p-6">
+          <!-- Menu List Tab -->
+          <div *ngIf="activeTab === 'list'">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-medium">All Menus</h3>
+              <div class="flex gap-4">
+                <input type="text" 
+                       [(ngModel)]="searchTerm" 
+                       (input)="filterMenus()"
+                       placeholder="Search menus..." 
+                       class="form-input">
+                <select [(ngModel)]="statusFilter" 
+                        (change)="filterMenus()" 
+                        class="form-select">
+                  <option value="">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+                <button (click)="toggleBulkMode()" 
+                        [class]="bulkMode ? 'btn-warning' : 'btn-secondary'">
+                  <i class="fas fa-check-square mr-2"></i>
+                  {{ bulkMode ? 'Cancel Bulk' : 'Bulk Select' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Bulk Actions Bar -->
+            <div *ngIf="bulkMode && selectedMenuIds.length > 0" class="bg-blue-50 border border-blue-200 rounded p-4 mb-4">
+              <div class="flex justify-between items-center">
+                <span class="text-blue-800">{{ selectedMenuIds.length }} menu(s) selected</span>
+                <div class="flex gap-2">
+                  <select [(ngModel)]="bulkTargetRoleId" class="form-select text-sm">
+                    <option value="">Select role for bulk assignment</option>
+                    <option *ngFor="let role of roles" [value]="role.id">{{ role.name }}</option>
+                  </select>
+                  <button (click)="bulkAssignToRole()" 
+                          [disabled]="!bulkTargetRoleId"
+                          class="btn-primary btn-sm">
+                    Assign to Role
+                  </button>
+                  <button (click)="clearSelection()" class="btn-secondary btn-sm">
+                    Clear Selection
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th *ngIf="bulkMode" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <input type="checkbox" 
+                             [checked]="allMenusSelected()" 
+                             (change)="toggleAllMenus($event)"
+                             class="form-checkbox">
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Menu</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">URL</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Roles</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  <tr *ngFor="let menu of filteredMenus" [class.bg-blue-50]="bulkMode && isMenuSelected(menu.id!)">
+                    <td *ngIf="bulkMode" class="px-6 py-4 whitespace-nowrap">
+                      <input type="checkbox" 
+                             [checked]="isMenuSelected(menu.id!)" 
+                             (change)="toggleMenuSelection(menu.id!, $event)"
+                             class="form-checkbox">
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <div class="flex items-center">
+                        <i [class]="menu.icon || 'fas fa-circle'" class="mr-3 text-gray-400"></i>
+                        <div>
+                          <div class="text-sm font-medium text-gray-900">{{ menu.name }}</div>
+                          <div class="text-sm text-gray-500">{{ menu.description }}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <code class="bg-gray-100 px-2 py-1 rounded text-xs">{{ menu.url }}</code>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <span class="bg-gray-100 px-2 py-1 rounded text-xs">{{ menu.displayOrder }}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      <span [class]="menu.active 
+                        ? 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800'
+                        : 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800'">
+                        {{ menu.active ? 'Active' : 'Inactive' }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <div class="flex flex-wrap gap-1">
+                        <span *ngFor="let role of getMenuRoles(menu)" 
+                              class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                          {{ role }}
+                        </span>
+                        <span *ngIf="getMenuRoles(menu).length === 0" 
+                              class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">
+                          No roles
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div class="flex items-center space-x-2">
+                        <button (click)="editMenu(menu)" 
+                                class="text-indigo-600 hover:text-indigo-900 p-1" 
+                                title="Edit Menu">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button (click)="manageRoles(menu)" 
+                                class="text-green-600 hover:text-green-900 p-1"
+                                title="Manage Roles">
+                          <i class="fas fa-users"></i>
+                        </button>
+                        <button (click)="editRoute(menu)" 
+                                class="text-blue-600 hover:text-blue-900 p-1"
+                                title="Edit Route">
+                          <i class="fas fa-route"></i>
+                        </button>
+                        <button (click)="toggleMenuStatus(menu)" 
+                                [class]="menu.active ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'"
+                                class="p-1"
+                                [title]="menu.active ? 'Deactivate' : 'Activate'">
+                          <i [class]="menu.active ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                        </button>
+                        <button (click)="deleteMenu(menu)" 
+                                class="text-red-600 hover:text-red-900 p-1"
+                                title="Delete Menu">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Role Management Tab -->
+          <div *ngIf="activeTab === 'roles'">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-medium">Role-Menu Assignments</h3>
+              <select [(ngModel)]="selectedRoleId" 
+                      (change)="loadRoleMenus()" 
+                      class="form-select">
+                <option value="">Select a role</option>
+                <option *ngFor="let role of roles" [value]="role.id">{{ role.name }}</option>
+              </select>
+            </div>
+
+            <div *ngIf="selectedRoleId && roleMenuData" class="space-y-4">
+              <div class="bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg p-4 border">
+                <div class="flex justify-between items-center">
+                  <div>
+                    <h4 class="font-medium text-gray-900">{{ roleMenuData.roleName }}</h4>
+                    <p class="text-sm text-gray-600">
+                      {{ roleMenuData.assignedMenus }} of {{ roleMenuData.totalMenus }} menus assigned
+                    </p>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-2xl font-bold text-blue-600">
+                      {{ getAssignmentPercentage(roleMenuData) }}%
+                    </div>
+                    <div class="text-xs text-gray-500">Coverage</div>
+                  </div>
+                </div>
+                <div class="mt-3 w-full bg-gray-200 rounded-full h-2">
+                  <div class="bg-blue-600 h-2 rounded-full" [style.width.%]="getAssignmentPercentage(roleMenuData)"></div>
+                </div>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Menu</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Permissions</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-200">
+                    <tr *ngFor="let menuItem of roleMenuData.menus">
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                          <i class="fas fa-circle mr-3 text-gray-400"></i>
+                          <div>
+                            <div class="text-sm font-medium text-gray-900">{{ menuItem.menuName }}</div>
+                            <div class="text-sm text-gray-500">
+                              <code class="bg-gray-100 px-1 rounded text-xs">{{ menuItem.menuUrl }}</code>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <span [class]="menuItem.assigned 
+                          ? 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800'
+                          : 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800'">
+                          {{ menuItem.assigned ? 'Yes' : 'No' }}
+                        </span>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <div *ngIf="menuItem.assigned" class="flex flex-wrap gap-1">
+                          <span *ngIf="menuItem.canView" class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                            <i class="fas fa-eye mr-1"></i>View
+                          </span>
+                          <span *ngIf="menuItem.canAdd" class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                            <i class="fas fa-plus mr-1"></i>Add
+                          </span>
+                          <span *ngIf="menuItem.canEdit" class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">
+                            <i class="fas fa-edit mr-1"></i>Edit
+                          </span>
+                          <span *ngIf="menuItem.canDelete" class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">
+                            <i class="fas fa-trash mr-1"></i>Delete
+                          </span>
+                        </div>
+                        <span *ngIf="!menuItem.assigned" class="text-gray-400 text-xs">No permissions</span>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                        <button *ngIf="!menuItem.assigned" 
+                                (click)="assignMenuToRole(menuItem.menuId, selectedRoleId)" 
+                                class="text-green-600 hover:text-green-900">
+                          <i class="fas fa-plus mr-1"></i>Assign
+                        </button>
+                        <button *ngIf="menuItem.assigned" 
+                                (click)="editPermissions(menuItem, selectedRoleId)" 
+                                class="text-blue-600 hover:text-blue-900">
+                          <i class="fas fa-cog mr-1"></i>Edit
+                        </button>
+                        <button *ngIf="menuItem.assigned" 
+                                (click)="removeMenuFromRole(menuItem.menuId, selectedRoleId)" 
+                                class="text-red-600 hover:text-red-900">
+                          <i class="fas fa-minus mr-1"></i>Remove
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tree View Tab -->
+          <div *ngIf="activeTab === 'tree'">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-medium">Menu Tree Structure</h3>
+              <button (click)="loadMenuTree()" class="btn-secondary">
+                <i class="fas fa-sync-alt mr-2"></i>Refresh Tree
+              </button>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4 border">
+              <div *ngFor="let menu of menuTree" class="menu-tree-item">
+                <div class="flex items-center py-2 px-2 hover:bg-white rounded">
+                  <i [class]="menu.icon || 'fas fa-circle'" class="mr-3 text-blue-500"></i>
+                  <span class="font-medium">{{ menu.name }}</span>
+                  <span class="ml-2 text-sm text-gray-500">
+                    <code class="bg-gray-200 px-1 rounded">{{ menu.url }}</code>
+                  </span>
+                  <span *ngIf="!menu.active" class="ml-2 text-xs bg-red-100 text-red-800 px-2 py-1 rounded">Inactive</span>
+                  <span class="ml-auto text-xs text-gray-400">Order: {{ menu.displayOrder }}</span>
+                </div>
+                <div *ngIf="menu.children && menu.children.length > 0" class="ml-6 border-l border-gray-200">
+                  <div *ngFor="let child of menu.children" class="flex items-center py-1 px-2 ml-4 hover:bg-white rounded">
+                    <i class="fas fa-corner-down-right mr-2 text-gray-300"></i>
+                    <i [class]="child.icon || 'fas fa-circle'" class="mr-3 text-green-500"></i>
+                    <span>{{ child.name }}</span>
+                    <span class="ml-2 text-sm text-gray-500">
+                      <code class="bg-gray-200 px-1 rounded">{{ child.url }}</code>
+                    </span>
+                    <span *ngIf="!child.active" class="ml-2 text-xs bg-red-100 text-red-800 px-2 py-1 rounded">Inactive</span>
+                    <span class="ml-auto text-xs text-gray-400">Order: {{ child.displayOrder }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Orphaned Menus Tab -->
+          <div *ngIf="activeTab === 'orphaned'">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-medium">Orphaned Menus</h3>
+              <span class="text-sm text-gray-500">{{ getOrphanedMenus().length }} orphaned menu(s)</span>
+            </div>
+            
+            <div *ngIf="getOrphanedMenus().length === 0" class="text-center py-8">
+              <i class="fas fa-check-circle text-green-500 text-4xl mb-4"></i>
+              <h4 class="text-lg font-medium text-gray-900 mb-2">No Orphaned Menus</h4>
+              <p class="text-gray-600">All menus are properly assigned to roles.</p>
+            </div>
+
+            <div *ngIf="getOrphanedMenus().length > 0" class="space-y-4">
+              <div class="bg-yellow-50 border border-yellow-200 rounded p-4">
+                <h4 class="font-medium text-yellow-800">âš ï¸ Warning</h4>
+                <p class="text-sm text-yellow-700 mt-1">
+                  These menus are not assigned to any role and won't be visible to users.
+                </p>
+              </div>
+
+              <div class="grid gap-4">
+                <div *ngFor="let menu of getOrphanedMenus()" 
+                     class="bg-white border border-gray-200 rounded p-4 hover:shadow-sm transition-shadow">
+                  <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                      <div class="flex items-center">
+                        <i [class]="menu.icon || 'fas fa-circle'" class="mr-3 text-gray-400"></i>
+                        <h4 class="font-medium text-gray-900">{{ menu.name }}</h4>
+                      </div>
+                      <p class="text-sm text-gray-600 mt-1">{{ menu.description }}</p>
+                      <p class="text-sm text-gray-500 mt-1">
+                        <code class="bg-gray-100 px-1 rounded">{{ menu.url }}</code>
+                      </p>
+                    </div>
+                    <div class="flex gap-2 ml-4">
+                      <select [(ngModel)]="menu.selectedRoleId" class="form-select text-sm">
+                        <option value="">Select role</option>
+                        <option *ngFor="let role of roles" [value]="role.id">{{ role.name }}</option>
+                      </select>
+                      <button (click)="assignOrphanedMenu(menu)" 
+                              [disabled]="!menu.selectedRoleId"
+                              class="btn-primary btn-sm">
+                        Assign
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Create/Edit Menu Modal -->
+      <div *ngIf="showModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 lg:w-1/3 shadow-lg rounded-md bg-white">
+          <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">
+              {{ isEditing ? 'Edit Menu' : 'Create New Menu' }}
+            </h3>
+            
+            <form [formGroup]="menuForm" (ngSubmit)="saveMenu()">
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Name *</label>
+                  <input type="text" formControlName="name" class="form-input" placeholder="Menu name">
+                  <div *ngIf="menuForm.get('name')?.invalid && menuForm.get('name')?.touched" 
+                       class="text-red-500 text-sm mt-1">Name is required</div>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">URL *</label>
+                  <input type="text" formControlName="url" class="form-input" placeholder="/menu-path">
+                  <div *ngIf="menuForm.get('url')?.invalid && menuForm.get('url')?.touched" 
+                       class="text-red-500 text-sm mt-1">URL is required</div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Icon</label>
+                    <input type="text" formControlName="icon" class="form-input" placeholder="fas fa-home">
+                  </div>
+
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Display Order</label>
+                    <input type="number" formControlName="displayOrder" class="form-input" placeholder="0">
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Parent Menu</label>
+                  <select formControlName="parentId" class="form-select">
+                    <option value="">No Parent (Root Menu)</option>
+                    <option *ngFor="let menu of getAvailableParentMenus()" [value]="menu.id">
+                      {{ menu.name }}
+                    </option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <textarea formControlName="description" rows="3" class="form-textarea" 
+                            placeholder="Menu description"></textarea>
+                </div>
+
+                <div class="flex items-center">
+                  <input type="checkbox" formControlName="active" class="form-checkbox">
+                  <label class="ml-2 text-sm font-medium text-gray-700">Active</label>
+                </div>
+              </div>
+
+              <div class="flex justify-end gap-4 mt-6">
+                <button type="button" (click)="closeModal()" class="btn-secondary">Cancel</button>
+                <button type="submit" [disabled]="menuForm.invalid || loading" class="btn-primary">
+                  <i *ngIf="loading" class="fas fa-spinner fa-spin mr-2"></i>
+                  {{ isEditing ? 'Update' : 'Create' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Route Edit Modal -->
+      <div *ngIf="showRouteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 lg:w-1/3 shadow-lg rounded-md bg-white">
+          <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Edit Menu Route</h3>
+            
+            <form [formGroup]="routeForm" (ngSubmit)="saveRoute()">
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Menu Name</label>
+                  <div class="p-2 bg-gray-100 rounded text-sm">{{ selectedMenuForRoute?.name }}</div>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">New URL *</label>
+                  <input type="text" formControlName="url" class="form-input" placeholder="/new-path">
+                  <div *ngIf="routeForm.get('url')?.invalid && routeForm.get('url')?.touched" 
+                       class="text-red-500 text-sm mt-1">URL is required and must start with /</div>
+                </div>
+              </div>
+
+              <div class="flex justify-end gap-4 mt-6">
+                <button type="button" (click)="closeRouteModal()" class="btn-secondary">Cancel</button>
+                <button type="submit" [disabled]="routeForm.invalid || loading" class="btn-primary">
+                  <i *ngIf="loading" class="fas fa-spinner fa-spin mr-2"></i>
+                  Update Route
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Permission Edit Modal -->
+      <div *ngIf="showPermissionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/2 shadow-lg rounded-md bg-white">
+          <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Edit Menu Permissions</h3>
+            
+            <form [formGroup]="permissionForm" (ngSubmit)="savePermissions()">
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Menu & Role</label>
+                  <div class="p-2 bg-gray-100 rounded text-sm">
+                    <strong>{{ selectedMenuForPermission?.menuName }}</strong> â†’ {{ getCurrentRoleName() }}
+                  </div>
+                </div>
+
+                <div class="space-y-3">
+                  <h4 class="font-medium text-gray-900">Permissions</h4>
+                  <div class="space-y-2">
+                    <label class="flex items-center">
+                      <input type="checkbox" formControlName="canView" class="form-checkbox">
+                      <span class="ml-2 text-sm">View - Can see and access the menu</span>
+                    </label>
+                    <label class="flex items-center">
+                      <input type="checkbox" formControlName="canAdd" class="form-checkbox">
+                      <span class="ml-2 text-sm">Add - Can create new items</span>
+                    </label>
+                    <label class="flex items-center">
+                      <input type="checkbox" formControlName="canEdit" class="form-checkbox">
+                      <span class="ml-2 text-sm">Edit - Can modify existing items</span>
+                    </label>
+                    <label class="flex items-center">
+                      <input type="checkbox" formControlName="canDelete" class="form-checkbox">
+                      <span class="ml-2 text-sm">Delete - Can remove items</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex justify-end gap-4 mt-6">
+                <button type="button" (click)="closePermissionModal()" class="btn-secondary">Cancel</button>
+                <button type="submit" [disabled]="loading" class="btn-primary">
+                  <i *ngIf="loading" class="fas fa-spinner fa-spin mr-2"></i>
+                  Update Permissions
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>

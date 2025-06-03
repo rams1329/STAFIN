@@ -1,0 +1,208 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full space-y-8">
+    <!-- Logo Section -->
+    <div class="text-center">
+      <div class="mx-auto h-16 w-16 flex items-center justify-center bg-primary rounded-lg mb-4">
+        <!-- ATS Logo SVG -->
+        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm-1 15l-4-4 1.414-1.414L11 14.172l5.586-5.586L18 10l-7 7z"/>
+        </svg>
+      </div>
+      <h2 class="text-3xl font-bold text-gray-900">
+        {{ isLoginMode ? 'Sign In' : 'Create Account' }}
+      </h2>
+      <p class="mt-2 text-sm text-gray-600">
+        {{ isLoginMode ? 'Access your dashboard' : 'Join our platform today' }}
+      </p>
+    </div>
+    
+    <!-- Mode Toggle -->
+    <div class="flex bg-gray-100 rounded-lg p-1">
+      <button type="button" 
+              (click)="switchToLogin()"
+              [class]="isLoginMode ? 'bg-white text-primary shadow-sm' : 'text-gray-500'"
+              class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200">
+        Sign In
+      </button>
+      <button type="button" 
+              (click)="switchToRegister()"
+              [class]="!isLoginMode ? 'bg-white text-primary shadow-sm' : 'text-gray-500'"
+              class="flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200">
+        Register
+      </button>
+    </div>
+    
+    <!-- Login Form -->
+    <form *ngIf="isLoginMode" [formGroup]="loginForm" (ngSubmit)="onLogin()" class="mt-8 space-y-6">
+      <!-- Email Field -->
+      <div class="space-y-1">
+        <label class="block text-sm font-medium text-gray-700">Email Address</label>
+        <input type="email" 
+               formControlName="email"
+               class="form-input"
+               [class.border-red-500]="isLoginFieldInvalid('email')"
+               placeholder="Enter your email">
+        <div *ngIf="isLoginFieldInvalid('email')" 
+             class="text-red-500 text-xs mt-1">
+          <span *ngIf="loginForm.get('email')?.errors?.['required']">Email is required</span>
+          <span *ngIf="loginForm.get('email')?.errors?.['email']">Please enter a valid email address</span>
+        </div>
+      </div>
+      
+      <!-- Password Field -->
+      <div class="space-y-1">
+        <label class="block text-sm font-medium text-gray-700">Password</label>
+        <div class="relative">
+          <input [type]="showPassword ? 'text' : 'password'" 
+                 formControlName="password"
+                 class="form-input pr-10"
+                 [class.border-red-500]="isLoginFieldInvalid('password')"
+                 placeholder="Enter your password">
+          <button type="button" 
+                  (click)="togglePassword()"
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path *ngIf="!showPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              <path *ngIf="showPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"/>
+            </svg>
+          </button>
+        </div>
+        <div *ngIf="isLoginFieldInvalid('password')" 
+             class="text-red-500 text-xs mt-1">
+          Password is required
+        </div>
+      </div>
+      
+      <!-- Remember Me & Forgot Password -->
+      <div class="flex items-center justify-between">
+        <label class="flex items-center">
+          <input type="checkbox" 
+                 formControlName="rememberMe"
+                 class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+          <span class="ml-2 block text-sm text-gray-900">Remember me</span>
+        </label>
+        <a routerLink="/forgot-password" class="text-sm text-primary hover:text-primary/80">
+          Forgot password?
+        </a>
+      </div>
+      
+      <!-- Login Button -->
+      <button type="submit" 
+              [disabled]="!loginForm.valid || isLoginLoading"
+              class="btn-primary w-full flex items-center justify-center">
+        <svg *ngIf="isLoginLoading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        {{ isLoginLoading ? 'Signing in...' : 'Sign In' }}
+      </button>
+    </form>
+
+    <!-- Registration Form -->
+    <form *ngIf="!isLoginMode" [formGroup]="registerForm" (ngSubmit)="onRegister()" class="mt-8 space-y-6">
+      <!-- Name Field -->
+      <div class="space-y-1">
+        <label class="block text-sm font-medium text-gray-700">Full Name</label>
+        <input type="text" 
+               formControlName="name"
+               class="form-input"
+               [class.border-red-500]="isRegisterFieldInvalid('name')"
+               placeholder="Enter your full name">
+        <div *ngIf="isRegisterFieldInvalid('name')" 
+             class="text-red-500 text-xs mt-1">
+          <span *ngIf="registerForm.get('name')?.errors?.['required']">Name is required</span>
+          <span *ngIf="registerForm.get('name')?.errors?.['minlength']">Name must be at least 2 characters</span>
+        </div>
+      </div>
+
+      <!-- Email Field -->
+      <div class="space-y-1">
+        <label class="block text-sm font-medium text-gray-700">Email Address</label>
+        <input type="email" 
+               formControlName="email"
+               class="form-input"
+               [class.border-red-500]="isRegisterFieldInvalid('email')"
+               placeholder="Enter your email">
+        <div *ngIf="isRegisterFieldInvalid('email')" 
+             class="text-red-500 text-xs mt-1">
+          <span *ngIf="registerForm.get('email')?.errors?.['required']">Email is required</span>
+          <span *ngIf="registerForm.get('email')?.errors?.['email']">Please enter a valid email address</span>
+        </div>
+      </div>
+      
+      <!-- Password Field -->
+      <div class="space-y-1">
+        <label class="block text-sm font-medium text-gray-700">Password</label>
+        <div class="relative">
+          <input [type]="showRegisterPassword ? 'text' : 'password'" 
+                 formControlName="password"
+                 class="form-input pr-10"
+                 [class.border-red-500]="isRegisterFieldInvalid('password')"
+                 placeholder="Create a password">
+          <button type="button" 
+                  (click)="toggleRegisterPassword()"
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path *ngIf="!showRegisterPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              <path *ngIf="showRegisterPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"/>
+            </svg>
+          </button>
+        </div>
+        <div *ngIf="isRegisterFieldInvalid('password')" 
+             class="text-red-500 text-xs mt-1">
+          <span *ngIf="registerForm.get('password')?.errors?.['required']">Password is required</span>
+          <span *ngIf="registerForm.get('password')?.errors?.['minlength']">Password must be at least 6 characters</span>
+        </div>
+      </div>
+
+      <!-- Confirm Password Field -->
+      <div class="space-y-1">
+        <label class="block text-sm font-medium text-gray-700">Confirm Password</label>
+        <div class="relative">
+          <input [type]="showConfirmPassword ? 'text' : 'password'" 
+                 formControlName="confirmPassword"
+                 class="form-input pr-10"
+                 [class.border-red-500]="isRegisterFieldInvalid('confirmPassword') || passwordMismatch"
+                 placeholder="Confirm your password">
+          <button type="button" 
+                  (click)="toggleConfirmPassword()"
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path *ngIf="!showConfirmPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              <path *ngIf="showConfirmPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"/>
+            </svg>
+          </button>
+        </div>
+        <div *ngIf="isRegisterFieldInvalid('confirmPassword') || passwordMismatch" 
+             class="text-red-500 text-xs mt-1">
+          <span *ngIf="registerForm.get('confirmPassword')?.errors?.['required']">Please confirm your password</span>
+          <span *ngIf="passwordMismatch">Passwords do not match</span>
+        </div>
+      </div>
+      
+      <!-- Register Button -->
+      <button type="submit" 
+              [disabled]="!registerForm.valid || passwordMismatch || isRegisterLoading"
+              class="btn-primary w-full flex items-center justify-center">
+        <svg *ngIf="isRegisterLoading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        {{ isRegisterLoading ? 'Creating Account...' : 'Create Account' }}
+      </button>
+    </form>
+    
+    <!-- Back to Home -->
+    <div class="text-center">
+      <a routerLink="/" class="text-sm text-gray-500 hover:text-primary">
+        ← Back to Home
+      </a>
+    </div>
+  </div>
+</div> 

@@ -1,0 +1,139 @@
+/* Login Component Styles */
+
+/* Custom form input styling */
+.form-input {
+  @apply appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm;
+}
+
+/* Primary button styling */
+.btn-primary {
+  @apply relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Logo background gradient */
+.bg-primary {
+  background: #0d2a66;
+}
+
+/* Text primary color */
+.text-primary {
+  color: #0d2a66;
+}
+
+/* Focus ring primary color */
+.focus\:ring-primary:focus {
+  --tw-ring-color: rgba(13, 42, 102, 0.5);
+}
+
+/* Border primary color */
+.focus\:border-primary:focus {
+  border-color: #0d2a66;
+}
+
+/* Primary hover state */
+.hover\:text-primary\/80:hover {
+  color: rgba(13, 42, 102, 0.8);
+}
+
+.hover\:bg-primary\/90:hover {
+  background: rgba(13, 42, 102, 0.9);
+}
+
+/* Form field spacing and animations */
+.space-y-1 > * + * {
+  margin-top: 0.25rem;
+}
+
+.space-y-6 > * + * {
+  margin-top: 1.5rem;
+}
+
+.space-y-8 > * + * {
+  margin-top: 2rem;
+}
+
+/* Transition animations */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.duration-200 {
+  transition-duration: 200ms;
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Custom scrollbar for better UX */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #0d2a66;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #1e3a8a;
+}
+
+/* Focus visible for accessibility */
+.form-input:focus-visible,
+button:focus-visible {
+  outline: 2px solid #212529;
+  outline-offset: 2px;
+}
+
+/* Error state styling */
+.border-red-500 {
+  border-color: #DC3545 !important;
+}
+
+.text-red-500 {
+  color: #DC3545;
+}
+
+/* Responsive improvements */
+@media (max-width: 640px) {
+  .max-w-md {
+    max-width: 100%;
+    margin: 0 1rem;
+  }
+}
+
+/* Dark mode support (if needed in future) */
+@media (prefers-color-scheme: dark) {
+  .bg-gray-50 {
+    background-color: #111827;
+  }
+  
+  .text-gray-900 {
+    color: #f9fafb;
+  }
+  
+  .text-gray-600 {
+    color: #d1d5db;
+  }
+  
+  .bg-gray-100 {
+    background-color: #374151;
+  }
+} 

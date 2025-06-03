@@ -1,0 +1,371 @@
+<div class="p-6 bg-gray-50 min-h-screen">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="text-heading text-gray-900 mb-2">Contact Messages</h1>
+        <p class="text-gray-600">Manage contact form submissions and inquiries</p>
+      </div>
+
+      <!-- Search and Filters -->
+      <div class="card mb-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Search & Filters</h3>
+        
+        <!-- Global Search -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Global Search</label>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              [(ngModel)]="filters.search"
+              placeholder="Search across all fields..."
+              class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            />
+            <button (click)="applyFilters()" class="btn-primary">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+              Search
+            </button>
+            <button (click)="clearFilters()" class="btn-secondary">
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- Advanced Filters (Collapsible) -->
+        <div class="border-t pt-4">
+          <button 
+            (click)="showAdvancedFilters = !showAdvancedFilters"
+            class="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900"
+          >
+            <svg 
+              class="w-4 h-4 mr-2 transform transition-transform"
+              [class.rotate-180]="showAdvancedFilters"
+              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+            Advanced Filters
+          </button>
+          
+          <div *ngIf="showAdvancedFilters" class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Individual Field Filters -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <input
+                type="text"
+                [(ngModel)]="filters.name"
+                placeholder="Filter by name..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="text"
+                [(ngModel)]="filters.email"
+                placeholder="Filter by email..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+            
+            <!-- Status Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select
+                [(ngModel)]="filters.isRead"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              >
+                <option [ngValue]="undefined">All Messages</option>
+                <option [ngValue]="false">Unread</option>
+                <option [ngValue]="true">Read</option>
+            </select>
+          </div>
+            
+            <!-- Date Range Filters -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Created From</label>
+              <input
+                type="date"
+                [(ngModel)]="filters.createdDateFrom"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+            
+          <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Created To</label>
+              <input
+                type="date"
+                [(ngModel)]="filters.createdDateTo"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+          </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="loading" class="text-center py-8">
+        <div class="animate-spin inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full"></div>
+        <p class="mt-2 text-gray-500">Loading messages...</p>
+      </div>
+
+      <!-- Messages List -->
+      <div *ngIf="!loading" class="card">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="text-subheading text-gray-900">
+              Messages ({{ pagination.totalElements }})
+            </h3>
+            <p class="text-sm text-gray-500">
+              Page {{ pagination.page + 1 }} of {{ pagination.totalPages }}
+              <span *ngIf="unreadCount > 0" class="ml-2 px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
+                {{ unreadCount }} unread
+              </span>
+            </p>
+          </div>
+          <div class="flex gap-2">
+            <button (click)="markAllAsRead()" 
+                    [disabled]="unreadCount === 0"
+                    class="btn-secondary"
+                    [class.opacity-50]="unreadCount === 0">
+              Mark All as Read
+            </button>
+            <button (click)="loadMessages()" class="btn-secondary flex items-center gap-2">
+              <svg class="w-5 h-5 button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              <span class="button-text">Refresh</span>
+            </button>
+          </div>
+        </div>
+        
+        <div *ngIf="messages.length === 0" class="text-center py-8">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+            <p class="mt-2 text-gray-500">No messages found</p>
+          <p class="text-sm text-gray-400 mt-1">Try adjusting your search criteria</p>
+          </div>
+
+        <div *ngIf="messages.length > 0" class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="table-header cursor-pointer" (click)="sortBy('name')">
+                  <div class="flex items-center">
+                    Name
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                    </div>
+                </th>
+                <th class="table-header cursor-pointer" (click)="sortBy('email')">
+                  <div class="flex items-center">
+                    Email
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                        </svg>
+                      </div>
+                </th>
+                <th class="table-header">Message</th>
+                <th class="table-header cursor-pointer" (click)="sortBy('isRead')">
+                  <div class="flex items-center">
+                    Status
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                    </div>
+                </th>
+                <th class="table-header cursor-pointer" (click)="sortBy('createdAt')">
+                  <div class="flex items-center">
+                    Created Date
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  </div>
+                </th>
+                <th class="table-header">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              <tr *ngFor="let message of messages" class="hover:bg-gray-50 transition-colors"
+                  [class.bg-blue-50]="!message.read">
+                <td class="table-cell font-medium">{{ message.name }}</td>
+                <td class="table-cell">{{ message.email }}</td>
+                <td class="table-cell">
+                  <div class="max-w-xs truncate">{{ message.message }}</div>
+                </td>
+                <td class="table-cell">
+                  <span class="px-2 py-1 text-xs font-medium rounded-full"
+                        [ngClass]="message.read ? 'status-inactive' : 'status-active'">
+                    {{ message.read ? 'Read' : 'Unread' }}
+                  </span>
+                </td>
+                <td class="table-cell">{{ message.createdAt | date:'short' }}</td>
+                <td class="table-cell">
+                  <div class="flex gap-2">
+                    <!-- View Button -->
+                    <button (click)="viewMessage(message)" 
+                            class="action-button text-primary hover:text-primary/80 flex items-center gap-1"
+                            title="View Message Details">
+                      <svg class="w-4 h-4 button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                      </svg>
+                      <span class="button-text text-sm">View</span>
+                    </button>
+                    
+                    <!-- Mark as Read Button -->
+                    <button (click)="markAsRead(message)" 
+                            *ngIf="!message.read"
+                            class="action-button text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                            title="Mark as Read">
+                      <svg class="w-4 h-4 button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                      </svg>
+                      <span class="button-text text-sm">Mark Read</span>
+                    </button>
+                    
+                    <!-- Delete Button -->
+                    <button (click)="deleteMessage(message)" 
+                            class="action-button text-red-600 hover:text-red-800 flex items-center gap-1"
+                            title="Delete Message">
+                      <svg class="w-4 h-4 button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                      </svg>
+                      <span class="button-text text-sm">Delete</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+                </div>
+                
+        <!-- Pagination -->
+        <div *ngIf="pagination.totalPages > 1" class="mt-6 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <label class="text-sm font-medium text-gray-700">Items per page:</label>
+            <select 
+              [(ngModel)]="pagination.size" 
+              (ngModelChange)="changePageSize($event)"
+              class="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            >
+              <option [value]="5">5</option>
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+            </select>
+            <span class="text-sm text-gray-500">or</span>
+            <input 
+              type="number" 
+              [(ngModel)]="customPageSize" 
+              (keyup.enter)="changePageSize(customPageSize)"
+              min="1" 
+              max="100" 
+              placeholder="Custom"
+              class="w-20 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm"
+            />
+            <button 
+              (click)="changePageSize(customPageSize)"
+              class="px-2 py-1 text-sm bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-md"
+            >
+              Apply
+            </button>
+                </div>
+                
+          <div class="flex items-center gap-2">
+            <button 
+              (click)="goToPage(0)" 
+              [disabled]="pagination.page === 0"
+              class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              First
+            </button>
+            <button 
+              (click)="goToPage(pagination.page - 1)" 
+              [disabled]="pagination.page === 0"
+              class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+                  </button>
+            
+            <span class="px-3 py-1 text-sm text-gray-700">
+              Page {{ pagination.page + 1 }} of {{ pagination.totalPages }}
+            </span>
+            
+            <button 
+              (click)="goToPage(pagination.page + 1)" 
+              [disabled]="pagination.page >= pagination.totalPages - 1"
+              class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+                  </button>
+            <button 
+              (click)="goToPage(pagination.totalPages - 1)" 
+              [disabled]="pagination.page >= pagination.totalPages - 1"
+              class="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Last
+                  </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Message Details Modal -->
+      <div *ngIf="selectedMessage" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-2xl w-full m-4 max-h-[80vh] overflow-y-auto">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Message Details</h3>
+            <button (click)="closeMessageDetails()" class="text-gray-400 hover:text-gray-600">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700">From</label>
+                <p class="text-sm text-gray-600">{{ selectedMessage.name }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Email</label>
+                <p class="text-sm text-gray-600">{{ selectedMessage.email }}</p>
+              </div>
+              <div *ngIf="selectedMessage.phoneNumber">
+                <label class="block text-sm font-medium text-gray-700">Phone</label>
+                <p class="text-sm text-gray-600">{{ selectedMessage.phoneNumber }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Received</label>
+                <p class="text-sm text-gray-600">{{ selectedMessage.createdAt | date:'full' }}</p>
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+              <div class="bg-gray-50 p-4 rounded-md">
+                <p class="text-sm text-gray-700 whitespace-pre-line">{{ selectedMessage.message }}</p>
+              </div>
+            </div>
+            
+            <div class="flex gap-2 pt-4">
+              <button (click)="markAsRead(selectedMessage)" 
+                      *ngIf="!selectedMessage.read"
+                    class="btn-primary">
+              Mark as Read
+            </button>
+            <button (click)="closeMessageDetails()" class="btn-secondary">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>

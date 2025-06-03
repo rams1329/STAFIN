@@ -1,0 +1,293 @@
+<div class="p-6 min-h-screen bg-gray-50">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="text-heading text-gray-900 mb-2">{{ isEditMode ? 'Edit Job' : 'Add Job' }}</h1>
+        <p class="text-gray-600">{{ isEditMode ? 'Update the job posting details' : 'Create a new job posting for your organization' }}</p>
+      </div>
+
+      <!-- Job Form -->
+      <div class="card max-w-4xl mx-auto job-form-container">
+        <form [formGroup]="jobForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          <!-- Requirement Title -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Requirement Title *</label>
+            <input type="text" 
+                   formControlName="requirementTitle"
+                   class="form-input"
+                   [class.border-red-500]="isFieldInvalid('requirementTitle')"
+                   placeholder="Enter requirement title">
+            <div *ngIf="isFieldInvalid('requirementTitle')" class="text-red-500 text-xs mt-1">
+              <span *ngIf="jobForm.get('requirementTitle')?.errors?.['required']">Requirement title is required</span>
+              <span *ngIf="jobForm.get('requirementTitle')?.errors?.['minlength']">
+                Requirement title must be at least 5 characters long
+              </span>
+            </div>
+          </div>
+
+          <!-- Job Title -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Job Title *</label>
+            <input type="text" 
+                   formControlName="jobTitle"
+                   class="form-input"
+                   [class.border-red-500]="isFieldInvalid('jobTitle')"
+                   placeholder="Enter job title">
+            <div *ngIf="isFieldInvalid('jobTitle')" class="text-red-500 text-xs mt-1">
+              <span *ngIf="jobForm.get('jobTitle')?.errors?.['required']">Job title is required</span>
+              <span *ngIf="jobForm.get('jobTitle')?.errors?.['minlength']">
+                Job title must be at least 3 characters long
+              </span>
+            </div>
+          </div>
+
+          <!-- Job Designation -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Job Designation *</label>
+            <input type="text" 
+                   formControlName="jobDesignation"
+                   class="form-input"
+                   [class.border-red-500]="isFieldInvalid('jobDesignation')"
+                   placeholder="Enter job designation">
+            <div *ngIf="isFieldInvalid('jobDesignation')" class="text-red-500 text-xs mt-1">
+              <span *ngIf="jobForm.get('jobDesignation')?.errors?.['required']">Job designation is required</span>
+              <span *ngIf="jobForm.get('jobDesignation')?.errors?.['minlength']">
+                Job designation must be at least 3 characters long
+              </span>
+            </div>
+          </div>
+
+          <!-- Job Description -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Job Description *</label>
+            <div class="border border-gray-300 rounded" [class.border-red-500]="isFieldInvalid('jobDescription')">
+              <!-- Rich Text Editor Toolbar -->
+              <div class="flex items-center gap-2 p-2 border-b border-gray-200 bg-gray-50">
+                <select class="text-sm border-none bg-transparent">
+                  <option>Normal</option>
+                </select>
+                <div class="flex items-center gap-1">
+                  <button type="button" class="p-1 hover:bg-gray-200 rounded" title="Bold">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 4h8a4 4 0 014 4 4 4 0 01-4 4H6z"/>
+                    </svg>
+                  </button>
+                  <button type="button" class="p-1 hover:bg-gray-200 rounded" title="Italic">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4h4m0 0a2 2 0 100-4m0 4a2 2 0 100 4"/>
+                    </svg>
+                  </button>
+                  <button type="button" class="p-1 hover:bg-gray-200 rounded" title="Underline">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 2l3 6 3-6M12 6l3 6 3-6M6 6h12"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Text Area -->
+              <textarea 
+                formControlName="jobDescription"
+                rows="8" 
+                class="w-full p-3 border-none resize-none focus:outline-none"
+                placeholder="Enter job description, requirements, and qualifications... (minimum 20 words)">
+              </textarea>
+            </div>
+            <div *ngIf="isFieldInvalid('jobDescription')" class="text-red-500 text-xs mt-1">
+              <span *ngIf="jobForm.get('jobDescription')?.errors?.['required']">Job description is required</span>
+              <span *ngIf="jobForm.get('jobDescription')?.errors?.['wordCount']">
+                Job description must contain at least 
+                {{ jobForm.get('jobDescription')?.errors?.['wordCount']?.required }} words 
+                (currently {{ jobForm.get('jobDescription')?.errors?.['wordCount']?.actual }} words)
+              </span>
+            </div>
+          </div>
+
+          <!-- Form Fields Row 1 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Job Function -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Job Function *</label>
+              <select formControlName="jobFunctionId" 
+                      class="form-input"
+                      [class.border-red-500]="isFieldInvalid('jobFunctionId')">
+                <option value="">Select job function</option>
+                <option *ngFor="let function of jobFunctions" [value]="function.id">
+                  {{ function.name }}
+                </option>
+              </select>
+              <div *ngIf="isFieldInvalid('jobFunctionId')" class="text-red-500 text-xs mt-1">
+                Job function is required
+              </div>
+            </div>
+
+            <!-- Job Type -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Job Type *</label>
+              <select formControlName="jobTypeId" 
+                      class="form-input"
+                      [class.border-red-500]="isFieldInvalid('jobTypeId')">
+                <option value="">Select job type</option>
+                <option *ngFor="let type of jobTypes" [value]="type.id">
+                  {{ type.name }}
+                </option>
+              </select>
+              <div *ngIf="isFieldInvalid('jobTypeId')" class="text-red-500 text-xs mt-1">
+                Job type is required
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Fields Row 2 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Location -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Location *</label>
+              <select formControlName="locationId" 
+                      class="form-input"
+                      [class.border-red-500]="isFieldInvalid('locationId')">
+                <option value="">Select location</option>
+                <option *ngFor="let location of locations" [value]="location.id">
+                  {{ location.name }}
+                </option>
+              </select>
+              <div *ngIf="isFieldInvalid('locationId')" class="text-red-500 text-xs mt-1">
+                Location is required
+              </div>
+            </div>
+
+            <!-- Department -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+              <select formControlName="departmentId" class="form-input">
+                <option value="">Select department</option>
+                <option *ngFor="let department of departments" [value]="department.id">
+                  {{ department.name }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Form Fields Row 3 -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Experience Level -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Experience Level</label>
+              <select formControlName="experienceLevelId" class="form-input">
+                <option value="">Select experience level</option>
+                <option *ngFor="let level of experienceLevels" [value]="level.id">
+                  {{ level.name }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Salary Min -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Minimum Salary</label>
+              <input type="number" 
+                     formControlName="salaryMin"
+                     class="form-input"
+                     [class.border-red-500]="hasFieldError('salaryMin', 'salaryRange') || hasFieldError('salaryMin', 'min')"
+                     placeholder="Enter minimum salary"
+                     min="0">
+              <div *ngIf="hasFieldError('salaryMin', 'min')" class="text-red-500 text-xs mt-1">
+                Minimum salary must be greater than 0
+              </div>
+            </div>
+
+            <!-- Salary Max -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Maximum Salary</label>
+              <input type="number" 
+                     formControlName="salaryMax"
+                     class="form-input"
+                     [class.border-red-500]="hasFieldError('salaryMax', 'salaryRange') || hasFieldError('salaryMax', 'min')"
+                     placeholder="Enter maximum salary"
+                     min="0">
+              <div *ngIf="hasFieldError('salaryMax', 'min')" class="text-red-500 text-xs mt-1">
+                Maximum salary must be greater than 0
+              </div>
+              <div *ngIf="hasFieldError('salaryMax', 'salaryRange')" class="text-red-500 text-xs mt-1">
+                Maximum salary must be greater than minimum salary
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Status -->
+          <div>
+            <label class="flex items-center">
+              <input type="checkbox" 
+                     formControlName="isActive"
+                     class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+              <span class="ml-2 block text-sm text-gray-900">Active (job will be visible to applicants)</span>
+            </label>
+          </div>
+
+          <!-- Error Message -->
+          <div *ngIf="errorMessage" 
+               class="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {{ errorMessage }}
+          </div>
+
+          <!-- Success Message -->
+          <div *ngIf="successMessage" 
+               class="p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+            {{ successMessage }}
+          </div>
+
+          <!-- Form Validation Summary -->
+          <div *ngIf="jobForm.invalid && jobForm.touched" class="p-3 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded">
+            <h4 class="font-medium mb-2">Please fix the following errors:</h4>
+            <ul class="list-disc list-inside text-sm space-y-1">
+              <li *ngIf="jobForm.get('requirementTitle')?.invalid && jobForm.get('requirementTitle')?.touched">
+                Requirement title is required and must be at least 5 characters
+              </li>
+              <li *ngIf="jobForm.get('jobTitle')?.invalid && jobForm.get('jobTitle')?.touched">
+                Job title is required and must be at least 3 characters
+              </li>
+              <li *ngIf="jobForm.get('jobDesignation')?.invalid && jobForm.get('jobDesignation')?.touched">
+                Job designation is required and must be at least 3 characters
+              </li>
+              <li *ngIf="jobForm.get('jobDescription')?.invalid && jobForm.get('jobDescription')?.touched">
+                Job description is required and must contain at least 20 words
+              </li>
+              <li *ngIf="jobForm.get('jobFunctionId')?.invalid && jobForm.get('jobFunctionId')?.touched">
+                Job function selection is required
+              </li>
+              <li *ngIf="jobForm.get('jobTypeId')?.invalid && jobForm.get('jobTypeId')?.touched">
+                Job type selection is required
+              </li>
+              <li *ngIf="jobForm.get('locationId')?.invalid && jobForm.get('locationId')?.touched">
+                Location selection is required
+              </li>
+              <li *ngIf="jobForm.get('salaryMax')?.errors?.['salaryRange']">
+                Maximum salary must be greater than minimum salary
+              </li>
+            </ul>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex gap-4 pt-6">
+            <button type="submit" 
+                    [disabled]="jobForm.invalid || isLoading"
+                    class="btn-primary"
+                    [class.opacity-50]="jobForm.invalid || isLoading">
+              <svg *ngIf="isLoading" class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {{ isEditMode ? (isLoading ? 'Updating Job...' : 'Update Job') : (isLoading ? 'Creating Job...' : 'Create Job') }}
+            </button>
+            <button type="button" 
+                    (click)="onCancel()"
+                    class="btn-secondary">
+              Cancel
+            </button>
+            <button type="button" 
+                    (click)="resetForm()"
+                    class="btn-secondary ml-auto">
+              Reset Form
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>

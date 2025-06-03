@@ -1,0 +1,98 @@
+<div class="min-h-screen bg-gray-50">
+      <!-- Header -->
+      <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between items-center py-4">
+            <!-- Logo -->
+            <div class="flex items-center">
+              <div class="h-8 w-8 flex items-center justify-center bg-primary rounded-lg mr-3">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm-1 15l-4-4 1.414-1.414L11 14.172l5.586-5.586L18 10l-7 7z"/>
+                </svg>
+              </div>
+              <span class="text-xl font-semibold text-gray-900">ATS Portal</span>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex space-x-8">
+              <!-- Static User Navigation -->
+              <a routerLink="/user/dashboard" 
+                 routerLinkActive="text-primary"
+                 class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">
+                Dashboard
+              </a>
+              <a routerLink="/user/jobs" 
+                 routerLinkActive="text-primary"
+                 class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">
+                Jobs
+              </a>
+              
+              <!-- Dynamic User Menus -->
+              <ng-container *ngFor="let menu of userMenus">
+                <div *ngIf="hasChildren(menu); else singleUserMenu" class="relative group">
+                  <button class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium flex items-center">
+                    <i *ngIf="menu.icon" [class]="menu.icon" class="mr-1 text-sm"></i>
+                    {{ menu.name }}
+                    <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.23 8.29a.75.75 0 01.02-1.06z"/>
+                    </svg>
+                  </button>
+                  
+                  <!-- Dropdown Menu -->
+                  <div class="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 hidden group-hover:block">
+                    <a *ngFor="let child of menu.children" 
+                       [routerLink]="child.url" 
+                       routerLinkActive="bg-gray-100"
+                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      <i *ngIf="child.icon" [class]="child.icon" class="mr-2 text-sm"></i>
+                      {{ child.name }}
+                    </a>
+                  </div>
+                </div>
+                
+                <!-- Single Menu Template -->
+                <ng-template #singleUserMenu>
+                  <a [routerLink]="menu.url" 
+                     routerLinkActive="text-primary"
+                     class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium flex items-center">
+                    <i *ngIf="menu.icon" [class]="menu.icon" class="mr-1 text-sm"></i>
+                    {{ menu.name }}
+                  </a>
+                </ng-template>
+              </ng-container>
+              
+              <!-- Profile Link -->
+              <a routerLink="/user/profile" 
+                 routerLinkActive="text-primary"
+                 class="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium">
+                Profile
+              </a>
+            </nav>
+
+            <!-- User Menu -->
+            <div class="flex items-center space-x-4">
+              <span class="text-sm text-gray-700">{{ userName }}</span>
+              <button (click)="logout()" 
+                      class="text-gray-500 hover:text-gray-700">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Loading State for Menus -->
+      <div *ngIf="loadingMenus" class="bg-blue-50 border-l-4 border-blue-400 p-4">
+        <div class="flex items-center">
+          <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
+          <p class="text-blue-700 text-sm">Loading your custom menus...</p>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <main>
+        <router-outlet></router-outlet>
+      </main>
+    </div>
